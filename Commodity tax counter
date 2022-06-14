@@ -1,0 +1,115 @@
+#include <windows.h>
+#include <string>
+
+
+
+using namespace std;
+
+HWND WartoscNettoTekst;
+HWND WartoscNetto;
+HWND VATTekst;
+HWND VAT;
+HWND PrzyciskPrzelicz;
+HWND WartoscVATTekst;
+HWND WartoscVAT;
+HWND WartoscBruttoTekst;
+HWND WartoscBrutto;
+
+
+LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) {
+	switch(Message) {
+		
+		case WM_COMMAND:
+			{
+				if ((HWND)lParam == PrzyciskPrzelicz)
+				{
+					int dlugosc = GetWindowTextLength (WartoscNetto);
+					LPSTR tekst = (LPSTR)GlobalAlloc(GPTR, dlugosc + 1);
+					GetWindowText (WartoscNetto, tekst, dlugosc + 1);
+					float Netto = atof(tekst);
+					
+					dlugosc = GetWindowTextLength (VAT);
+					tekst = (LPSTR)GlobalAlloc(GPTR, dlugosc + 1);
+					GetWindowText (VAT, tekst, dlugosc + 1);
+					float Podatek = atof(tekst);
+					
+					
+					float V = Netto * Podatek /100.0;
+					string s_Vat = to_string (V);
+					SetWindowText (WartoscVAT, s_Vat.c_str());
+					
+					float B = Netto + V;
+					string s_Brutto = to_string (B);
+					SetWindowText (WartoscBrutto, s_Brutto.c_str());
+					
+				 } 
+				break;
+			}
+		
+		
+		case WM_DESTROY: {
+			PostQuitMessage(0);
+			break;
+		}
+		
+		
+		default:
+			return DefWindowProc(hwnd, Message, wParam, lParam);
+	}
+	return 0;
+}
+
+
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
+	WNDCLASSEX wc; 
+	HWND hwnd; 
+	MSG msg; 
+
+	
+	memset(&wc,0,sizeof(wc));
+	wc.cbSize		 = sizeof(WNDCLASSEX);
+	wc.lpfnWndProc	 = WndProc; 
+	wc.hInstance	 = hInstance;
+	wc.hCursor		 = LoadCursor(NULL, IDC_ARROW);
+	
+	
+	wc.hbrBackground = (HBRUSH)(COLOR_WINDOW+1);
+	wc.lpszClassName = "WindowClass";
+	wc.hIcon		 = LoadIcon(NULL, IDI_APPLICATION); 
+	wc.hIconSm		 = LoadIcon(NULL, IDI_APPLICATION); 
+
+	if(!RegisterClassEx(&wc)) {
+		MessageBox(NULL, "Window Registration Failed!","Error!",MB_ICONEXCLAMATION|MB_OK);
+		return 0;
+	}
+
+	hwnd = CreateWindowEx(WS_EX_CLIENTEDGE,"WindowClass","Commodity tax counter",WS_VISIBLE|WS_OVERLAPPEDWINDOW,
+		CW_USEDEFAULT, 
+		CW_USEDEFAULT, 
+		610, 
+		170, 
+		NULL,NULL,hInstance,NULL);
+	WartoscNettoTekst = CreateWindowEx(WS_EX_CLIENTEDGE, "EDIT", "Net value of commodity:", WS_CHILD|WS_VISIBLE, 10, 10, 165, 20, hwnd, NULL, hInstance, NULL);
+	WartoscNetto = CreateWindowEx(WS_EX_CLIENTEDGE, "EDIT", NULL, WS_CHILD|WS_VISIBLE, 180, 10, 80, 20, hwnd, NULL, hInstance, NULL);
+    VATTekst = CreateWindowEx(WS_EX_CLIENTEDGE, "EDIT", "Tax value [%]:", WS_CHILD|WS_VISIBLE, 300, 10, 100, 20, hwnd, NULL, hInstance, NULL);
+    VAT = CreateWindowEx(WS_EX_CLIENTEDGE, "EDIT", NULL, WS_CHILD|WS_VISIBLE, 500, 10, 80, 20, hwnd, NULL, hInstance, NULL);
+    PrzyciskPrzelicz = CreateWindowEx (0, "BUTTON", "COUNT", WS_CHILD|WS_VISIBLE, 250, 50, 100, 30, hwnd, NULL, hInstance, NULL);
+    WartoscVATTekst = CreateWindowEx(WS_EX_CLIENTEDGE, "EDIT", "Tax value of commodity:", WS_CHILD|WS_VISIBLE, 10, 100, 165, 20, hwnd, NULL, hInstance, NULL);
+    WartoscVAT = CreateWindowEx(WS_EX_CLIENTEDGE, "EDIT", NULL, WS_CHILD|WS_VISIBLE, 180, 100, 80, 20, hwnd, NULL, hInstance, NULL);
+    WartoscBruttoTekst = CreateWindowEx(WS_EX_CLIENTEDGE, "EDIT", "Gross value of commodity:", WS_CHILD|WS_VISIBLE, 300, 100, 180, 20, hwnd, NULL, hInstance, NULL);
+    WartoscBrutto = CreateWindowEx(WS_EX_CLIENTEDGE, "EDIT", NULL, WS_CHILD|WS_VISIBLE, 500, 100, 80, 20, hwnd, NULL, hInstance, NULL);
+     
+     
+     
+	if(hwnd == NULL) {
+		MessageBox(NULL, "Window Creation Failed!","Error!",MB_ICONEXCLAMATION|MB_OK);
+		return 0;
+	}
+
+
+	while(GetMessage(&msg, NULL, 0, 0) > 0) { 
+		TranslateMessage(&msg); 
+		DispatchMessage(&msg); 
+	}
+	return msg.wParam;
+}
